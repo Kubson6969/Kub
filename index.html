@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<title>ShopperTracker</title>
+<style>
+  :root {
+    --surface-1: #fcfcfb;
+    --page: #f9f9f7;
+    --text-primary: #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted: #898781;
+    --gridline: #e1e0d9;
+    --baseline: #c3c2b7;
+    --border: rgba(11, 11, 11, 0.10);
+    --series-1: #2a78d6;
+    --series-1-soft: rgba(42, 120, 214, 0.10);
+    --good: #006300;
+    --critical: #d03b3b;
+    --shadow: 0 1px 2px rgba(11, 11, 11, 0.05);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --surface-1: #1a1a19;
+      --page: #0d0d0d;
+      --text-primary: #ffffff;
+      --text-secondary: #c3c2b7;
+      --text-muted: #898781;
+      --gridline: #2c2c2a;
+      --baseline: #383835;
+      --border: rgba(255, 255, 255, 0.10);
+      --series-1: #3987e5;
+      --series-1-soft: rgba(57, 135, 229, 0.14);
+      --good: #0ca30c;
+      --critical: #e66767;
+      --shadow: none;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--page);
+    color: var(--text-primary);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 15px;
+    line-height: 1.45;
+  }
+
+  header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 20px 20px 0;
+  }
+  header h1 {
+    font-size: 20px;
+    font-weight: 650;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  header h1 .logo {
+    width: 26px; height: 26px;
+    border-radius: 7px;
+    background: var(--series-1);
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+  }
+  .spacer { flex: 1; }
+
+  nav.tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 3px;
+  }
+  nav.tabs button {
+    border: 0;
+    background: transparent;
+    color: var(--text-secondary);
+    font: inherit;
+    font-weight: 550;
+    padding: 6px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  nav.tabs button[aria-selected="true"] {
+    background: var(--series-1);
+    color: #fff;
+  }
+  nav.tabs button:not([aria-selected="true"]):hover { color: var(--text-primary); }
+
+  select, input, button { font: inherit; color: inherit; }
+  select.currency {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 8px;
+  }
+
+  main { max-width: 960px; margin: 0 auto; padding: 20px; }
+  .view { display: none; }
+  .view.active { display: block; }
+
+  .card {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: var(--shadow);
+  }
+  .card h2 {
+    margin: 0 0 12px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+
+  /* ---------- forms ---------- */
+  form.entry {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: flex-end;
+  }
+  form.entry label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 12px;
+    color: var(--text-muted);
+    flex: 1 1 120px;
+  }
+  form.entry label.narrow { flex: 0 1 90px; }
+  form.entry input, form.entry select {
+    background: var(--page);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 10px;
+    min-width: 0;
+  }
+  form.entry input:focus, form.entry select:focus {
+    outline: 2px solid var(--series-1);
+    outline-offset: 0;
+    border-color: transparent;
+  }
+  button.primary {
+    background: var(--series-1);
+    color: #fff;
+    border: 0;
+    border-radius: 8px;
+    padding: 9px 16px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  button.primary:hover { filter: brightness(1.07); }
+  button.ghost {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 12px;
+    color: var(--text-secondary);
+    cursor: pointer;
+  }
+  button.ghost:hover { color: var(--text-primary); }
+  button.icon {
+    background: transparent;
+    border: 0;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 6px;
+    font-size: 14px;
+  }
+  button.icon:hover { color: var(--critical); background: var(--page); }
+
+  /* ---------- shopping list ---------- */
+  ul.shoplist { list-style: none; margin: 12px 0 0; padding: 0; }
+  ul.shoplist li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 4px;
+    border-top: 1px solid var(--gridline);
+  }
+  ul.shoplist li:first-child { border-top: 0; }
+  ul.shoplist input[type="checkbox"] {
+    width: 18px; height: 18px;
+    accent-color: var(--series-1);
+    cursor: pointer;
+  }
+  ul.shoplist .name { flex: 1; }
+  ul.shoplist li.done .name {
+    text-decoration: line-through;
+    color: var(--text-muted);
+  }
+  .chip {
+    font-size: 12px;
+    color: var(--text-secondary);
+    background: var(--page);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 2px 9px;
+    white-space: nowrap;
+  }
+  ul.shoplist .qty { font-size: 13px; color: var(--text-muted); white-space: nowrap; }
+  ul.shoplist input.price {
+    width: 84px;
+    background: var(--page);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 5px 8px;
+    font-size: 13px;
+  }
+  .list-footer {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid var(--gridline);
+    flex-wrap: wrap;
+  }
+  .list-footer .note { font-size: 13px; color: var(--text-muted); flex: 1; }
+
+  /* ---------- dashboard ---------- */
+  .tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .tile .label { font-size: 13px; color: var(--text-secondary); }
+  .tile .value { font-size: 30px; font-weight: 650; margin-top: 2px; }
+  .tile .delta { font-size: 13px; margin-top: 2px; color: var(--text-muted); }
+  .tile .delta.up-bad { color: var(--critical); }
+  .tile .delta.down-good { color: var(--good); }
+
+  .charts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  @media (max-width: 720px) { .charts { grid-template-columns: 1fr; } }
+  .chart-box svg { display: block; width: 100%; height: auto; }
+  .chart-box text {
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+
+  .empty {
+    color: var(--text-muted);
+    text-align: center;
+    padding: 28px 12px;
+    font-size: 14px;
+  }
+
+  /* ---------- purchases table ---------- */
+  .table-wrap { overflow-x: auto; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  th {
+    text-align: left;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    padding: 6px 10px;
+    border-bottom: 1px solid var(--baseline);
+    white-space: nowrap;
+  }
+  td {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--gridline);
+    white-space: nowrap;
+  }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .filters {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+  .filters input, .filters select {
+    background: var(--page);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 7px 10px;
+  }
+  .filters input[type="search"] { flex: 1 1 160px; min-width: 0; }
+
+  /* ---------- tooltip ---------- */
+  #tooltip {
+    position: fixed;
+    pointer-events: none;
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+    padding: 7px 10px;
+    font-size: 13px;
+    z-index: 10;
+    display: none;
+    max-width: 240px;
+  }
+  #tooltip .t-label { color: var(--text-muted); font-size: 12px; }
+  #tooltip .t-value { font-weight: 600; }
+
+  footer {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 20px 28px;
+    color: var(--text-muted);
+    font-size: 12.5px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  footer .spacer { flex: 1; }
+  footer button.link {
+    background: none;
+    border: 0;
+    color: var(--text-muted);
+    text-decoration: underline;
+    cursor: pointer;
+    font-size: 12.5px;
+    padding: 0;
+  }
+  footer button.link:hover { color: var(--text-primary); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1><span class="logo" aria-hidden="true">&#128722;</span> ShopperTracker</h1>
+  <div class="spacer"></div>
+  <nav class="tabs" role="tablist" aria-label="Views">
+    <button role="tab" id="tab-list" aria-selected="true" data-view="list">Shopping list</button>
+    <button role="tab" id="tab-spend" aria-selected="false" data-view="spend">Spending</button>
+  </nav>
+  <select class="currency" id="currency" aria-label="Currency">
+    <option value="USD">$ USD</option>
+    <option value="EUR">&euro; EUR</option>
+    <option value="GBP">&pound; GBP</option>
+    <option value="PLN">z&#322; PLN</option>
+  </select>
+</header>
+
+<main>
+  <!-- ================= Shopping list ================= -->
+  <section class="view active" id="view-list" role="tabpanel" aria-labelledby="tab-list">
+    <div class="card">
+      <h2>Add an item</h2>
+      <form class="entry" id="add-item-form">
+        <label>Item
+          <input id="item-name" placeholder="e.g. Milk" required autocomplete="off">
+        </label>
+        <label class="narrow">Qty
+          <input id="item-qty" type="number" min="1" step="1" value="1">
+        </label>
+        <label class="narrow">Category
+          <select id="item-cat"></select>
+        </label>
+        <button class="primary" type="submit">Add</button>
+      </form>
+      <ul class="shoplist" id="shoplist"></ul>
+      <div class="empty" id="list-empty" hidden>
+        Your list is empty. Add items above, tick them off as you shop, then log
+        what they cost to track your spending.
+      </div>
+      <div class="list-footer" id="list-footer" hidden>
+        <span class="note" id="list-note"></span>
+        <button class="ghost" id="clear-done">Remove checked</button>
+        <button class="primary" id="log-done">Log checked as purchases</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= Spending ================= -->
+  <section class="view" id="view-spend" role="tabpanel" aria-labelledby="tab-spend">
+    <div class="tiles" id="tiles"></div>
+
+    <div class="charts">
+      <div class="card chart-box">
+        <h2>Spending by category &middot; last 30 days</h2>
+        <div id="chart-cat"></div>
+      </div>
+      <div class="card chart-box">
+        <h2>Weekly spend &middot; last 8 weeks</h2>
+        <div id="chart-week"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Log a purchase</h2>
+      <form class="entry" id="add-purchase-form">
+        <label>Item
+          <input id="p-name" placeholder="e.g. Coffee beans" required autocomplete="off">
+        </label>
+        <label class="narrow">Price
+          <input id="p-price" type="number" min="0" step="0.01" placeholder="0.00" required>
+        </label>
+        <label class="narrow">Qty
+          <input id="p-qty" type="number" min="1" step="1" value="1">
+        </label>
+        <label class="narrow">Category
+          <select id="p-cat"></select>
+        </label>
+        <label>Store
+          <input id="p-store" placeholder="optional" autocomplete="off">
+        </label>
+        <label class="narrow">Date
+          <input id="p-date" type="date" required>
+        </label>
+        <button class="primary" type="submit">Log</button>
+      </form>
+    </div>
+
+    <div class="card" style="margin-top:12px">
+      <h2>Purchases</h2>
+      <div class="filters">
+        <input type="search" id="f-search" placeholder="Search items or stores&hellip;" aria-label="Search purchases">
+        <select id="f-cat" aria-label="Filter by category"></select>
+        <select id="f-range" aria-label="Filter by period">
+          <option value="30">Last 30 days</option>
+          <option value="7">Last 7 days</option>
+          <option value="90">Last 90 days</option>
+          <option value="all" selected>All time</option>
+        </select>
+      </div>
+      <div class="table-wrap">
+        <table id="purchase-table">
+          <thead>
+            <tr>
+              <th>Date</th><th>Item</th><th>Category</th><th>Store</th>
+              <th class="num">Qty</th><th class="num">Price</th><th class="num">Total</th><th></th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="empty" id="table-empty" hidden>
+        No purchases yet. Log one above, or check items off your shopping list.
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <span id="storage-note">Data is stored locally in this browser.</span>
+  <div class="spacer"></div>
+  <button class="link" id="export-btn">Export JSON</button>
+  <button class="link" id="import-btn">Import JSON</button>
+  <button class="link" id="sample-btn">Load sample data</button>
+  <input type="file" id="import-file" accept="application/json" hidden>
+</footer>
+
+<div id="tooltip" role="status"></div>
+
+<script>
+"use strict";
+
+/* ============================ state ============================ */
+
+const STORAGE_KEY = "shoppertracker.v1";
+const CATEGORIES = [
+  "Groceries", "Household", "Health", "Clothing",
+  "Electronics", "Entertainment", "Other",
+];
+
+const state = load();
+
+function load() {
+  const fallback = { listItems: [], purchases: [], currency: "USD" };
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return fallback;
+    const data = JSON.parse(raw);
+    return {
+      listItems: Array.isArray(data.listItems) ? data.listItems : [],
+      purchases: Array.isArray(data.purchases) ? data.purchases : [],
+      currency: typeof data.currency === "string" ? data.currency : "USD",
+    };
+  } catch {
+    return fallback;
+  }
+}
+
+function save() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const todayISO = () => new Date().toISOString().slice(0, 10);
+
+function money(n) {
+  return new Intl.NumberFormat(undefined, {
+    style: "currency",
+    currency: state.currency,
+    maximumFractionDigits: 2,
+  }).format(n);
+}
+
+function moneyCompact(n) {
+  if (Math.abs(n) >= 10000) {
+    return new Intl.NumberFormat(undefined, {
+      style: "currency", currency: state.currency, notation: "compact",
+    }).format(n);
+  }
+  return money(n);
+}
+
+function daysAgo(dateStr) {
+  return (Date.now() - new Date(dateStr + "T00:00:00").getTime()) / 86400000;
+}
+
+/* ============================ tabs ============================ */
+
+document.querySelectorAll("nav.tabs button").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll("nav.tabs button").forEach((b) =>
+      b.setAttribute("aria-selected", String(b === btn)));
+    document.querySelectorAll(".view").forEach((v) =>
+      v.classList.toggle("active", v.id === "view-" + btn.dataset.view));
+    if (btn.dataset.view === "spend") renderSpending();
+  });
+});
+
+/* ============================ currency ============================ */
+
+const currencySel = document.getElementById("currency");
+currencySel.value = state.currency;
+currencySel.addEventListener("change", () => {
+  state.currency = currencySel.value;
+  save();
+  renderAll();
+});
+
+/* ==================== category selects ==================== */
+
+for (const id of ["item-cat", "p-cat"]) {
+  const sel = document.getElementById(id);
+  sel.innerHTML = CATEGORIES.map((c) => `<option>${c}</option>`).join("");
+}
+
+/* ============================ shopping list ============================ */
+
+document.getElementById("add-item-form").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const name = document.getElementById("item-name").value.trim();
+  if (!name) return;
+  state.listItems.push({
+    id: uid(),
+    name,
+    qty: Math.max(1, +document.getElementById("item-qty").value || 1),
+    category: document.getElementById("item-cat").value,
+    done: false,
+    price: null,
+  });
+  save();
+  e.target.reset();
+  document.getElementById("item-qty").value = 1;
+  document.getElementById("item-name").focus();
+  renderList();
+});
+
+function renderList() {
+  const ul = document.getElementById("shoplist");
+  ul.innerHTML = "";
+  for (const item of state.listItems) {
+    const li = document.createElement("li");
+    li.className = item.done ? "done" : "";
+
+    const cb = document.createElement("input");
+    cb.type = "checkbox";
+    cb.checked = item.done;
+    cb.setAttribute("aria-label", "Bought: " + item.name);
+    cb.addEventListener("change", () => {
+      item.done = cb.checked;
+      save();
+      renderList();
+    });
+
+    const name = document.createElement("span");
+    name.className = "name";
+    name.textContent = item.name;
+
+    const qty = document.createElement("span");
+    qty.className = "qty";
+    qty.textContent = "×" + item.qty;
+
+    const chip = document.createElement("span");
+    chip.className = "chip";
+    chip.textContent = item.category;
+
+    li.append(cb, name, qty, chip);
+
+    if (item.done) {
+      const price = document.createElement("input");
+      price.type = "number";
+      price.min = "0";
+      price.step = "0.01";
+      price.placeholder = "price";
+      price.className = "price";
+      price.value = item.price ?? "";
+      price.setAttribute("aria-label", "Price paid for " + item.name);
+      price.addEventListener("change", () => {
+        item.price = price.value === "" ? null : +price.value;
+        save();
+      });
+      li.append(price);
+    }
+
+    const del = document.createElement("button");
+    del.className = "icon";
+    del.textContent = "✕";
+    del.setAttribute("aria-label", "Remove " + item.name);
+    del.addEventListener("click", () => {
+      state.listItems = state.listItems.filter((i) => i.id !== item.id);
+      save();
+      renderList();
+    });
+    li.append(del);
+
+    ul.append(li);
+  }
+
+  const doneCount = state.listItems.filter((i) => i.done).length;
+  document.getElementById("list-empty").hidden = state.listItems.length > 0;
+  const footer = document.getElementById("list-footer");
+  footer.hidden = doneCount === 0;
+  document.getElementById("list-note").textContent =
+    doneCount + " checked · add prices, then log them to your spending history.";
+}
+
+document.getElementById("clear-done").addEventListener("click", () => {
+  state.listItems = state.listItems.filter((i) => !i.done);
+  save();
+  renderList();
+});
+
+document.getElementById("log-done").addEventListener("click", () => {
+  const done = state.listItems.filter((i) => i.done);
+  const date = todayISO();
+  for (const item of done) {
+    state.purchases.push({
+      id: uid(),
+      name: item.name,
+      category: item.category,
+      price: item.price ?? 0,
+      qty: item.qty,
+      store: "",
+      date,
+    });
+  }
+  state.listItems = state.listItems.filter((i) => !i.done);
+  save();
+  renderList();
+  document.getElementById("tab-spend").click();
+});
+
+/* ============================ purchases ============================ */
+
+const dateInput = document.getElementById("p-date");
+dateInput.value = todayISO();
+
+document.getElementById("add-purchase-form").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const name = document.getElementById("p-name").value.trim();
+  const price = +document.getElementById("p-price").value;
+  if (!name || !(price >= 0)) return;
+  state.purchases.push({
+    id: uid(),
+    name,
+    category: document.getElementById("p-cat").value,
+    price,
+    qty: Math.max(1, +document.getElementById("p-qty").value || 1),
+    store: document.getElementById("p-store").value.trim(),
+    date: dateInput.value || todayISO(),
+  });
+  save();
+  e.target.reset();
+  document.getElementById("p-qty").value = 1;
+  dateInput.value = todayISO();
+  renderSpending();
+});
+
+/* ---------- filters ---------- */
+
+const fCat = document.getElementById("f-cat");
+fCat.innerHTML =
+  '<option value="">All categories</option>' +
+  CATEGORIES.map((c) => `<option>${c}</option>`).join("");
+
+for (const id of ["f-search", "f-cat", "f-range"]) {
+  document.getElementById(id).addEventListener("input", renderTable);
+}
+
+function filteredPurchases() {
+  const q = document.getElementById("f-search").value.trim().toLowerCase();
+  const cat = fCat.value;
+  const range = document.getElementById("f-range").value;
+  return state.purchases.filter((p) => {
+    if (cat && p.category !== cat) return false;
+    if (range !== "all" && daysAgo(p.date) > +range) return false;
+    if (q && !(p.name.toLowerCase().includes(q) || (p.store || "").toLowerCase().includes(q)))
+      return false;
+    return true;
+  });
+}
+
+function renderTable() {
+  const rows = filteredPurchases()
+    .slice()
+    .sort((a, b) => b.date.localeCompare(a.date));
+  const tbody = document.querySelector("#purchase-table tbody");
+  tbody.innerHTML = "";
+  for (const p of rows) {
+    const tr = document.createElement("tr");
+    const total = p.price * p.qty;
+    tr.innerHTML =
+      `<td>${p.date}</td>` +
+      `<td>${esc(p.name)}</td>` +
+      `<td><span class="chip">${esc(p.category)}</span></td>` +
+      `<td>${esc(p.store || "—")}</td>` +
+      `<td class="num">${p.qty}</td>` +
+      `<td class="num">${money(p.price)}</td>` +
+      `<td class="num"><strong>${money(total)}</strong></td>`;
+    const td = document.createElement("td");
+    const del = document.createElement("button");
+    del.className = "icon";
+    del.textContent = "✕";
+    del.setAttribute("aria-label", "Delete purchase " + p.name);
+    del.addEventListener("click", () => {
+      state.purchases = state.purchases.filter((x) => x.id !== p.id);
+      save();
+      renderSpending();
+    });
+    td.append(del);
+    tr.append(td);
+    tbody.append(tr);
+  }
+  document.getElementById("table-empty").hidden = rows.length > 0;
+  document.getElementById("purchase-table").hidden = rows.length === 0;
+}
+
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+/* ============================ stat tiles ============================ */
+
+function renderTiles() {
+  const inWindow = (p, days) => daysAgo(p.date) <= days;
+  const sum = (list) => list.reduce((s, p) => s + p.price * p.qty, 0);
+
+  const last30 = state.purchases.filter((p) => inWindow(p, 30));
+  const prev30 = state.purchases.filter((p) => !inWindow(p, 30) && inWindow(p, 60));
+  const spent30 = sum(last30);
+  const spentPrev = sum(prev30);
+
+  const trips = new Set(last30.map((p) => p.date + "|" + (p.store || ""))).size;
+  const avgTrip = trips ? spent30 / trips : 0;
+
+  const byCat = {};
+  for (const p of last30) byCat[p.category] = (byCat[p.category] || 0) + p.price * p.qty;
+  const topCat = Object.entries(byCat).sort((a, b) => b[1] - a[1])[0];
+
+  let deltaHtml = '<div class="delta">vs previous 30 days: —</div>';
+  if (spentPrev > 0) {
+    const pct = ((spent30 - spentPrev) / spentPrev) * 100;
+    const cls = pct > 0 ? "up-bad" : "down-good";
+    const sign = pct > 0 ? "+" : "";
+    deltaHtml = `<div class="delta ${cls}">${sign}${pct.toFixed(0)}% vs previous 30 days</div>`;
+  }
+
+  document.getElementById("tiles").innerHTML = `
+    <div class="card tile">
+      <div class="label">Spent, last 30 days</div>
+      <div class="value">${moneyCompact(spent30)}</div>
+      ${deltaHtml}
+    </div>
+    <div class="card tile">
+      <div class="label">Shopping trips</div>
+      <div class="value">${trips}</div>
+      <div class="delta">${last30.length} items logged</div>
+    </div>
+    <div class="card tile">
+      <div class="label">Average per trip</div>
+      <div class="value">${moneyCompact(avgTrip)}</div>
+      <div class="delta">&nbsp;</div>
+    </div>
+    <div class="card tile">
+      <div class="label">Top category</div>
+      <div class="value" style="font-size:22px">${topCat ? esc(topCat[0]) : "—"}</div>
+      <div class="delta">${topCat ? moneyCompact(topCat[1]) : "no purchases yet"}</div>
+    </div>`;
+}
+
+/* ============================ charts ============================ */
+
+const SVGNS = "http://www.w3.org/2000/svg";
+
+function svgEl(tag, attrs) {
+  const el = document.createElementNS(SVGNS, tag);
+  for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+  return el;
+}
+
+function niceMax(v) {
+  if (v <= 0) return 10;
+  const mag = Math.pow(10, Math.floor(Math.log10(v)));
+  for (const m of [1, 2, 2.5, 5, 10]) {
+    if (v <= m * mag) return m * mag;
+  }
+  return 10 * mag;
+}
+
+const tooltip = document.getElementById("tooltip");
+function attachTooltip(target, labelText, valueText) {
+  const show = (e) => {
+    tooltip.innerHTML =
+      `<div class="t-label">${esc(labelText)}</div><div class="t-value">${esc(valueText)}</div>`;
+    tooltip.style.display = "block";
+    move(e);
+  };
+  const move = (e) => {
+    const pad = 12;
+    let x = e.clientX + pad, y = e.clientY + pad;
+    const r = tooltip.getBoundingClientRect();
+    if (x + r.width > window.innerWidth - 8) x = e.clientX - r.width - pad;
+    if (y + r.height > window.innerHeight - 8) y = e.clientY - r.height - pad;
+    tooltip.style.left = x + "px";
+    tooltip.style.top = y + "px";
+  };
+  const hide = () => { tooltip.style.display = "none"; };
+  target.addEventListener("pointerenter", show);
+  target.addEventListener("pointermove", move);
+  target.addEventListener("pointerleave", hide);
+}
+
+/* Horizontal bar with a 4px rounded data-end and a square baseline end. */
+function barPath(x, y, w, h, r) {
+  r = Math.min(r, w, h / 2);
+  return `M ${x} ${y} H ${x + w - r} Q ${x + w} ${y} ${x + w} ${y + r}` +
+         ` V ${y + h - r} Q ${x + w} ${y + h} ${x + w - r} ${y + h} H ${x} Z`;
+}
+
+/* Vertical column: rounded cap on top, square at the baseline. */
+function colPath(x, y, w, h, r) {
+  r = Math.min(r, h, w / 2);
+  return `M ${x} ${y + h} V ${y + r} Q ${x} ${y} ${x + r} ${y}` +
+         ` H ${x + w - r} Q ${x + w} ${y} ${x + w} ${y + r} V ${y + h} Z`;
+}
+
+function renderCategoryChart() {
+  const box = document.getElementById("chart-cat");
+  box.innerHTML = "";
+  const byCat = {};
+  for (const p of state.purchases) {
+    if (daysAgo(p.date) <= 30) byCat[p.category] = (byCat[p.category] || 0) + p.price * p.qty;
+  }
+  const rows = Object.entries(byCat).sort((a, b) => b[1] - a[1]).slice(0, 7);
+  if (!rows.length) {
+    box.innerHTML = '<div class="empty">Nothing in the last 30 days.</div>';
+    return;
+  }
+
+  const W = 440, rowH = 34, padL = 104, padR = 78, padT = 6;
+  const H = padT + rows.length * rowH + 6;
+  const max = Math.max(...rows.map((r) => r[1]));
+  const svg = svgEl("svg", {
+    viewBox: `0 0 ${W} ${H}`,
+    role: "img",
+    "aria-label": "Bar chart of spending by category over the last 30 days",
+  });
+
+  rows.forEach(([cat, val], i) => {
+    const y = padT + i * rowH;
+    const barH = 20; /* <= 24px, leaves air in the 34px band */
+    const w = Math.max(2, ((W - padL - padR) * val) / max);
+
+    const label = svgEl("text", {
+      x: padL - 10, y: y + barH / 2 + 4.5,
+      "text-anchor": "end", "font-size": "12.5", fill: "var(--text-secondary)",
+    });
+    label.textContent = cat;
+    svg.append(label);
+
+    const bar = svgEl("path", {
+      d: barPath(padL, y, w, barH, 4),
+      fill: "var(--series-1)",
+    });
+    svg.append(bar);
+
+    const value = svgEl("text", {
+      x: padL + w + 8, y: y + barH / 2 + 4.5,
+      "font-size": "12.5", "font-weight": "600", fill: "var(--text-primary)",
+    });
+    value.textContent = moneyCompact(val);
+    svg.append(value);
+
+    const hit = svgEl("rect", {
+      x: 0, y: y - 4, width: W, height: rowH, fill: "transparent",
+    });
+    attachTooltip(hit, cat + " · last 30 days", money(val));
+    svg.append(hit);
+  });
+
+  /* baseline */
+  svg.append(svgEl("line", {
+    x1: padL, y1: padT - 2, x2: padL, y2: H - 4,
+    stroke: "var(--baseline)", "stroke-width": 1,
+  }));
+
+  box.append(svg);
+}
+
+function startOfWeek(d) {
+  const dt = new Date(d);
+  dt.setHours(0, 0, 0, 0);
+  const day = (dt.getDay() + 6) % 7; /* Monday-start weeks */
+  dt.setDate(dt.getDate() - day);
+  return dt;
+}
+
+function renderWeekChart() {
+  const box = document.getElementById("chart-week");
+  box.innerHTML = "";
+
+  const weeks = [];
+  const thisWeek = startOfWeek(new Date());
+  for (let i = 7; i >= 0; i--) {
+    const start = new Date(thisWeek);
+    start.setDate(start.getDate() - i * 7);
+    weeks.push({ start, total: 0 });
+  }
+  for (const p of state.purchases) {
+    const t = new Date(p.date + "T00:00:00").getTime();
+    for (const w of weeks) {
+      if (t >= w.start.getTime() && t < w.start.getTime() + 7 * 86400000) {
+        w.total += p.price * p.qty;
+        break;
+      }
+    }
+  }
+  if (!weeks.some((w) => w.total > 0)) {
+    box.innerHTML = '<div class="empty">Nothing in the last 8 weeks.</div>';
+    return;
+  }
+
+  const W = 440, H = 220, padL = 46, padR = 8, padT = 12, padB = 26;
+  const plotW = W - padL - padR, plotH = H - padT - padB;
+  const max = niceMax(Math.max(...weeks.map((w) => w.total)));
+  const svg = svgEl("svg", {
+    viewBox: `0 0 ${W} ${H}`,
+    role: "img",
+    "aria-label": "Column chart of weekly spending over the last 8 weeks",
+  });
+
+  /* hairline gridlines + clean ticks */
+  const ticks = 4;
+  for (let i = 0; i <= ticks; i++) {
+    const v = (max / ticks) * i;
+    const y = padT + plotH - (plotH * v) / max;
+    if (i > 0) {
+      svg.append(svgEl("line", {
+        x1: padL, y1: y, x2: W - padR, y2: y,
+        stroke: "var(--gridline)", "stroke-width": 1,
+      }));
+    }
+    const t = svgEl("text", {
+      x: padL - 8, y: y + 4, "text-anchor": "end",
+      "font-size": "11", fill: "var(--text-muted)",
+      style: "font-variant-numeric: tabular-nums",
+    });
+    t.textContent = max >= 1000 ? (v / 1000) + "k" : String(Math.round(v));
+    svg.append(t);
+  }
+
+  const band = plotW / weeks.length;
+  const colW = Math.min(24, band * 0.55);
+  const fmt = new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" });
+
+  weeks.forEach((w, i) => {
+    const x = padL + band * i + (band - colW) / 2;
+    const h = (plotH * w.total) / max;
+    const y = padT + plotH - h;
+
+    if (w.total > 0) {
+      svg.append(svgEl("path", {
+        d: colPath(x, y, colW, h, 4),
+        fill: "var(--series-1)",
+      }));
+    }
+
+    if (i % 2 === 0) {
+      const t = svgEl("text", {
+        x: x + colW / 2, y: H - 8, "text-anchor": "middle",
+        "font-size": "11", fill: "var(--text-muted)",
+      });
+      t.textContent = fmt.format(w.start);
+      svg.append(t);
+    }
+
+    const hit = svgEl("rect", {
+      x: padL + band * i, y: padT, width: band, height: plotH + padB,
+      fill: "transparent",
+    });
+    attachTooltip(hit, "Week of " + fmt.format(w.start), money(w.total));
+    svg.append(hit);
+  });
+
+  /* baseline */
+  svg.append(svgEl("line", {
+    x1: padL, y1: padT + plotH, x2: W - padR, y2: padT + plotH,
+    stroke: "var(--baseline)", "stroke-width": 1,
+  }));
+
+  box.append(svg);
+}
+
+/* ============================ export / import / sample ============================ */
+
+document.getElementById("export-btn").addEventListener("click", () => {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "shoppertracker-" + todayISO() + ".json";
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+
+const importFile = document.getElementById("import-file");
+document.getElementById("import-btn").addEventListener("click", () => importFile.click());
+importFile.addEventListener("change", async () => {
+  const file = importFile.files[0];
+  if (!file) return;
+  try {
+    const data = JSON.parse(await file.text());
+    if (!Array.isArray(data.purchases) && !Array.isArray(data.listItems)) {
+      throw new Error("not a ShopperTracker export");
+    }
+    state.listItems = Array.isArray(data.listItems) ? data.listItems : [];
+    state.purchases = Array.isArray(data.purchases) ? data.purchases : [];
+    if (typeof data.currency === "string") {
+      state.currency = data.currency;
+      currencySel.value = data.currency;
+    }
+    save();
+    renderAll();
+  } catch (err) {
+    alert("Could not import that file: " + err.message);
+  }
+  importFile.value = "";
+});
+
+document.getElementById("sample-btn").addEventListener("click", () => {
+  if (state.purchases.length &&
+      !confirm("Replace your current data with sample data?")) return;
+  const d = (n) => {
+    const dt = new Date();
+    dt.setDate(dt.getDate() - n);
+    return dt.toISOString().slice(0, 10);
+  };
+  state.listItems = [
+    { id: uid(), name: "Milk", qty: 2, category: "Groceries", done: false, price: null },
+    { id: uid(), name: "Bread", qty: 1, category: "Groceries", done: false, price: null },
+    { id: uid(), name: "Dish soap", qty: 1, category: "Household", done: false, price: null },
+  ];
+  const rows = [
+    ["Weekly groceries", "Groceries", 62.4, 1, "GreenMart", 2],
+    ["Coffee beans", "Groceries", 14.5, 1, "GreenMart", 2],
+    ["Paper towels", "Household", 8.99, 2, "CostSaver", 5],
+    ["Vitamins", "Health", 19.9, 1, "PharmaPlus", 6],
+    ["Weekly groceries", "Groceries", 71.15, 1, "GreenMart", 9],
+    ["T-shirt", "Clothing", 15.0, 2, "StyleCo", 11],
+    ["USB-C cable", "Electronics", 12.99, 1, "TechHub", 13],
+    ["Weekly groceries", "Groceries", 58.3, 1, "GreenMart", 16],
+    ["Movie night", "Entertainment", 24.0, 1, "CineWorld", 17],
+    ["Laundry detergent", "Household", 11.49, 1, "CostSaver", 19],
+    ["Weekly groceries", "Groceries", 66.8, 1, "GreenMart", 23],
+    ["Sneakers", "Clothing", 79.99, 1, "StyleCo", 26],
+    ["Weekly groceries", "Groceries", 60.25, 1, "GreenMart", 30],
+    ["Board game", "Entertainment", 34.5, 1, "PlayBox", 33],
+    ["Weekly groceries", "Groceries", 69.4, 1, "GreenMart", 37],
+    ["Shampoo", "Health", 6.99, 2, "PharmaPlus", 40],
+    ["Weekly groceries", "Groceries", 55.7, 1, "GreenMart", 44],
+    ["Headphones", "Electronics", 49.0, 1, "TechHub", 47],
+    ["Weekly groceries", "Groceries", 63.9, 1, "GreenMart", 51],
+  ];
+  state.purchases = rows.map(([name, category, price, qty, store, ago]) => ({
+    id: uid(), name, category, price, qty, store, date: d(ago),
+  }));
+  save();
+  renderAll();
+});
+
+/* ============================ render ============================ */
+
+function renderSpending() {
+  renderTiles();
+  renderCategoryChart();
+  renderWeekChart();
+  renderTable();
+}
+
+function renderAll() {
+  renderList();
+  renderSpending();
+}
+
+renderAll();
+</script>
+</body>
+</html>
