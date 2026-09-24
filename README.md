@@ -40,9 +40,9 @@ and CSS custom properties for theming. State is persisted under the
 
 ---
 
-## MMOClases (plugin de Minecraft)
+## MMOClasses (plugin de Minecraft)
 
-La carpeta [`mmoclases/`](mmoclases/) contiene un plugin de Paper con 4 clases RPG
+La carpeta [`mmoclasses/`](mmoclasses/) contiene un plugin de Paper con 4 clases RPG
 (Mago, Arquero, Guerrero, Clérigo) pensado para funcionar con MMOWeaponary.
-Consulta [`mmoclases/README.md`](mmoclases/README.md) y el diseño en
-[`mmoclases/DISENO.md`](mmoclases/DISENO.md).
+Consulta [`mmoclasses/README.md`](mmoclasses/README.md) y el diseño en
+[`mmoclasses/DISENO.md`](mmoclasses/DISENO.md).
