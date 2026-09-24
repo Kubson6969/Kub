@@ -37,12 +37,3 @@ purchases.
 A single self-contained HTML file: vanilla JavaScript, hand-rolled SVG charts,
 and CSS custom properties for theming. State is persisted under the
 `shoppertracker.v1` key in `localStorage`.
-
----
-
-## MMOClasses (plugin de Minecraft)
-
-La carpeta [`mmoclasses/`](mmoclasses/) contiene un plugin de Paper con 4 clases RPG
-(Mago, Arquero, Guerrero, Clérigo) pensado para funcionar con MMOWeaponary.
-Consulta [`mmoclasses/README.md`](mmoclasses/README.md) y el diseño en
-[`mmoclasses/DISENO.md`](mmoclasses/DISENO.md).
